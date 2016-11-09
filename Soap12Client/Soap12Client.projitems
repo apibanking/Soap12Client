@@ -9,5 +9,10 @@
     <Import_RootNamespace>Soap12Client</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CustomTextMessageBindingElement.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CustomTextMessageEncoder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CustomTextMessageEncoderFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Environment.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SoapClient.cs" />
   </ItemGroup>
 </Project>
