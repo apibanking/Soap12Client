@@ -91,6 +91,11 @@ namespace APIBanking
                     return new EndpointAddress(baseURL + "/app/uat/fundsTransferByCustomerServiceHttpService");
                 }
                 else
+                if ( serviceName == "InwardRemittanceByPartnerService")
+                {
+                    return new EndpointAddress(baseURL + "/app/uat/InwardRemittanceByPartnerServiceHttpService");    
+                }
+                else
                 if (serviceName == "DomesticRemittanceByPartnerService")
                 {
                     return new EndpointAddress(baseURL + "/app/uat/DomesticRemittanceService");
