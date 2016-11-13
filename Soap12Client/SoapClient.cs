@@ -52,5 +52,15 @@ namespace APIBanking
             return binding;
 
         }
+        public static String formatFaultCode(FaultCode faultCode)
+        {
+            switch (faultCode.Namespace)
+            {
+                case "http://www.quantiguous.com/services":
+                    return "ns:" + faultCode.Name;
+                default:
+                    return faultCode.Namespace + ":" + faultCode.Name;
+            }
+        }
     }
 }
