@@ -13,6 +13,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CustomTextMessageEncoder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CustomTextMessageEncoderFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Environment.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Fault.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SoapClient.cs" />
   </ItemGroup>
 </Project>
