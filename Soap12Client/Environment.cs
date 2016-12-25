@@ -24,69 +24,143 @@ namespace APIBanking
         Boolean needsClientCertificate();
 
     }
+
+    public abstract class _Environment : Environment
+    {
+        protected String user;
+        protected String password;
+        protected String client_id;
+        protected String client_secret;
+        protected Uri proxyAddress;
+        protected String pkcs12FilePath;
+        protected String pkcs12Password;
+        protected byte[] pkcs12RawData;
+
+
+        protected _Environment(String user, String password, String client_id, String client_secret, byte[] pkcs12RawData, Uri proxyAddress = null)
+        {
+            this.user = user;
+            this.password = password;
+            this.client_id = client_id;
+            this.client_secret = client_secret;
+            this.proxyAddress = proxyAddress;
+            this.pkcs12RawData = pkcs12RawData;
+        }
+
+        protected _Environment(String user, String password, String client_id, String client_secret, String pkcs12FilePath = null, String pkcs12Password = null, Uri proxyAddress = null)
+        {
+            this.user = user;
+            this.password = password;
+            this.client_id = client_id;
+            this.client_secret = client_secret;
+            this.proxyAddress = proxyAddress;
+            this.pkcs12FilePath = pkcs12FilePath;
+            this.pkcs12Password = pkcs12Password;
+        }
+
+        public Uri getProxyAddress()
+        {
+            return this.proxyAddress;
+        }
+        public Boolean needsHTTPBasicAuth()
+        {
+            return true;
+        }
+        public String getUser()
+        {
+            return this.user;
+        }
+        public String getPassword()
+        {
+            return this.password;
+        }
+        public String getClientId()
+        {
+            return this.client_id;
+        }
+        public String getClientSecret()
+        {
+            return this.client_secret;
+        }
+        public Boolean needsClientCertificate()
+        {
+            return (this.pkcs12FilePath != null || this.pkcs12RawData != null) ? true : false;
+        }
+
+        public System.Net.SecurityProtocolType getSecurityProtocol()
+        {
+            return System.Net.SecurityProtocolType.Tls;
+        }
+        public X509Certificate2 getClientCertificate()
+        {
+            if (this.pkcs12RawData != null)
+            {
+                return new X509Certificate2(this.pkcs12RawData);
+            }
+            else
+            {
+                return new X509Certificate2(this.pkcs12FilePath, this.pkcs12Password);
+            }
+        }
+
+        public abstract EndpointAddress getEndpointAddress(string serviceName);
+        public abstract Hashtable getHeaders();
+    }
+
     namespace Environments.YBL
     {
-        public class UAT : Environment
+        public abstract class _YBLEnvironment : _Environment
         {
-            private String user;
-            private String password;
-            private String client_id;
-            private String client_secret;
-            private Uri proxyAddress;
-            private String pkcs12FilePath;
-            private String pkcs12Password;
 
-            public UAT(String user, String password, String client_id, String client_secret, String pkcs12FilePath = null, String pkcs12Password = null, Uri proxyAddress = null)
+            protected _YBLEnvironment(String user, String password, String client_id, String client_secret, byte[] pkcs12RawData, Uri proxyAddress = null)
+                :base(user, password, client_id, client_secret, pkcs12RawData, proxyAddress)
             {
-                this.user = user;
-                this.password = password;
-                this.client_id = client_id;
-                this.client_secret = client_secret;
-                this.proxyAddress = proxyAddress;
-                this.pkcs12FilePath = pkcs12FilePath;
-                this.pkcs12Password = pkcs12Password;
+            }
+
+            protected _YBLEnvironment(String user, String password, String client_id, String client_secret, String pkcs12FilePath = null, String pkcs12Password = null, Uri proxyAddress = null) :
+                base(user, password, client_id, client_secret, pkcs12FilePath, pkcs12Password, proxyAddress)
+            {
+            }
+            protected _YBLEnvironment(String user, String password, String client_id, String client_secret, Uri proxyAddress = null)
+                : base(user, password, client_id, client_secret, null, null, proxyAddress)
+            {
+            }
+            public override Hashtable getHeaders()
+            {
+                Hashtable headers = new Hashtable();
+                headers.Add("X-IBM-Client-Id", client_id);
+                headers.Add("X-IBM-Client-Secret", client_secret);
+                if (needsClientCertificate())
+                {
+                    headers.Add("Authorization", "Basic " + Convert.ToBase64String(Encoding.ASCII.GetBytes(user + ":" + password)));
+                }
+                return headers;
+            }
+        }
+        public class UAT : _YBLEnvironment
+        {
+            public UAT(String user, String password, String client_id, String client_secret, byte[] pkcs12RawData, Uri proxyAddress = null)
+                :base(user, password, client_id, client_secret, pkcs12RawData, proxyAddress)
+            {
+            }
+
+            public UAT(String user, String password, String client_id, String client_secret, String pkcs12FilePath = null, String pkcs12Password = null, Uri proxyAddress = null) :
+                base(user, password, client_id, client_secret, pkcs12FilePath, pkcs12Password, proxyAddress)
+            {
             }
             public UAT(String user, String password, String client_id, String client_secret, Uri proxyAddress = null)
-                : this(user, password, client_id, client_secret, null, null, proxyAddress)
+                : base(user, password, client_id, client_secret, null, null, proxyAddress)
             {
             }
 
-            public Uri getProxyAddress()
-            {
-                return this.proxyAddress;
-            }
-            public Boolean needsHTTPBasicAuth()
-            {
-                return true;
-            }
-            public String getUser()
-            {
-                return this.user;
-            }
-            public String getPassword()
-            {
-                return this.password;
-            }
-            public String getClientId()
-            {
-                return this.client_id;
-            }
-            public String getClientSecret()
-            {
-                return this.client_secret;
-            }
-            public Boolean needsClientCertificate()
-            {
-                return ( this.pkcs12FilePath != null ) ? true : false;
-            }
-            public EndpointAddress getEndpointAddress(String serviceName)
+            public override EndpointAddress getEndpointAddress(String serviceName)
             {
                 String baseURL = "https://uatsky.yesbank.in";
                 if (needsClientCertificate())
                 {
                     baseURL += ":444";
                 }
-                if ( serviceName == "fundsTransferByCustomerService")
+                if (serviceName == "fundsTransferByCustomerService")
                 {
                     return new EndpointAddress(baseURL + "/app/uat/fundsTransferByCustomerServiceHttpService");
                 }
@@ -96,9 +170,9 @@ namespace APIBanking
                     return new EndpointAddress(baseURL + "/app/uat/fundsTransferByCustomerService2");
                 }
                 else
-                if ( serviceName == "InwardRemittanceByPartnerService")
+                if (serviceName == "InwardRemittanceByPartnerService")
                 {
-                    return new EndpointAddress(baseURL + "/app/uat/InwardRemittanceByPartnerServiceHttpService");    
+                    return new EndpointAddress(baseURL + "/app/uat/InwardRemittanceByPartnerServiceHttpService");
                 }
                 else
                 if (serviceName == "DomesticRemittanceByPartnerService")
@@ -110,26 +184,56 @@ namespace APIBanking
                     return new EndpointAddress(baseURL + "/app/uat/ssl/" + serviceName);
                 }
             }
-
-            public Hashtable getHeaders()
+        }
+        public class PRD : _YBLEnvironment
+        {
+            public PRD(String user, String password, String client_id, String client_secret, byte[] pkcs12RawData, Uri proxyAddress = null)
+                :base(user, password, client_id, client_secret, pkcs12RawData, proxyAddress)
             {
-                Hashtable headers = new Hashtable();
-                headers.Add("X-IBM-Client-Id", client_id);
-                headers.Add("X-IBM-Client-Secret", client_secret);
+            }
+
+            public PRD(String user, String password, String client_id, String client_secret, String pkcs12FilePath = null, String pkcs12Password = null, Uri proxyAddress = null) :
+                base(user, password, client_id, client_secret, pkcs12FilePath, pkcs12Password, proxyAddress)
+            {
+            }
+            public PRD(String user, String password, String client_id, String client_secret, Uri proxyAddress = null)
+                : base(user, password, client_id, client_secret, null, null, proxyAddress)
+            {
+            }
+
+            public override EndpointAddress getEndpointAddress(String serviceName)
+            {
+                String baseURL = "https://sky.yesbank.in";
                 if (needsClientCertificate())
                 {
-                    headers.Add("Authorization", "Basic " + Convert.ToBase64String(Encoding.ASCII.GetBytes(user + ":" + password)));
+                    baseURL += ":444";
                 }
-                return headers;
-            }
-            public System.Net.SecurityProtocolType getSecurityProtocol()
-            {
-                return System.Net.SecurityProtocolType.Tls;
-            }
-            public X509Certificate2 getClientCertificate()
-            {
-                return new X509Certificate2(this.pkcs12FilePath, this.pkcs12Password);
+                if (serviceName == "fundsTransferByCustomerService")
+                {
+                    return new EndpointAddress(baseURL + "/app/live/fundsTransferByCustomerServiceHttpService");
+                }
+                else
+                if (serviceName == "fundsTransferByCustomerService2")
+                {
+                    return new EndpointAddress(baseURL + "/app/live/fundsTransferByCustomerService2");
+                }
+                else
+                if (serviceName == "InwardRemittanceByPartnerService")
+                {
+                    return new EndpointAddress(baseURL + "/app/live/InwardRemittanceByPartnerServiceHttpService");
+                }
+                else
+                if (serviceName == "DomesticRemittanceByPartnerService")
+                {
+                    return new EndpointAddress(baseURL + "/app/live/DomesticRemittanceService");
+                }
+                else
+                {
+                    return new EndpointAddress(baseURL + "/app/live/ssl/" + serviceName);
+                }
             }
         }
+
     }
+
 }
