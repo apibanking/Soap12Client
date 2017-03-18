@@ -24,7 +24,7 @@ namespace APIBanking
             {
                 httpsBindingElement.AuthenticationScheme = System.Net.AuthenticationSchemes.Basic;
             }
-
+            
             // client certificates when required 
             if (env.needsClientCertificate())
             {
