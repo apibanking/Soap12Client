@@ -141,7 +141,12 @@ namespace APIBanking
                 else
                 if (serviceName == "fundsTransferByCustomerService2")
                 {
+                  if (needsClientCertificate())
+                  {
+                    return new EndpointAddress(baseURL + "/app/uat/ssl/fundsTransferByCustomerSevice2");
+                  else
                     return new EndpointAddress(baseURL + "/app/uat/fundsTransferByCustomerService2");
+                  }
                 }
                 else
                 if (serviceName == "InwardRemittanceByPartnerService")
